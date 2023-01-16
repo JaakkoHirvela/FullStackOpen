@@ -18,15 +18,32 @@ const App = () => {
   ]
 
   const [selected, setSelected] = useState(0)
+  const [points, setPoints] = useState(Array(7).fill(Number(0)))
 
-  const handleClick = () => {
-    setSelected(Math.floor((Math.random() * 7)))
+  const handleClick = type => {
+    switch (type) {
+      case 'vote':
+        const pointsCopy = [...points]
+        pointsCopy[selected] += 1
+        setPoints(pointsCopy)
+        break;
+      case 'next':
+        setSelected(Math.floor((Math.random() * 7)))
+        break;
+      default:
+        console.log('Button not defined!')
+        return;
+    }
   }
 
   return (
     <div>
       {anecdotes[selected]}
-      <div><Button handleClick={() => handleClick()} text='next anecdote' /></div>
+      <div>has {points[selected]} votes</div>
+      <div>
+        <Button handleClick={() => handleClick('vote')} text='vote' />
+        <Button handleClick={() => handleClick('next')} text='next anecdote' />
+      </div>
     </div>
   )
 }
