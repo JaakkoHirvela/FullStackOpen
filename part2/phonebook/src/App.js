@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+
 
 const Contact = (props) => {
   if (props.filter === '' || props.name.toLowerCase().includes(props.filter.toLowerCase())) {
@@ -36,22 +38,26 @@ const ContactAddingForm = (props) => {
 
 const Contacts = (props) => {
   return (
-    props.persons.map(person => 
+    props.persons.map(person =>
       <Contact key={person.name} name={person.name} number={person.number} filter={props.filter} />)
   )
 }
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456' },
-    { name: 'Ada Lovelace', number: '39-44-5323523' },
-    { name: 'Dan Abramov', number: '12-43-234345' },
-    { name: 'Mary Poppendieck', number: '39-23-6423122' }
-  ])
-
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
+
+  useEffect(() => {
+    console.log("effect")
+    axios.get('http://localhost:3001/persons')
+      .then(response => {
+        console.log("promise fulfilled")
+        setPersons(response.data)
+      })
+  }, [])
+  console.log('render', persons.length, 'persons')
 
   const addName = (event) => {
     event.preventDefault()
@@ -80,7 +86,7 @@ const App = () => {
         number={newNumber} onNumberChange={handleNumberChange} />
 
       <h2>Contacts</h2>
-      <Contacts persons={persons} filter={newFilter}/>
+      <Contacts persons={persons} filter={newFilter} />
     </div>
   )
 }
