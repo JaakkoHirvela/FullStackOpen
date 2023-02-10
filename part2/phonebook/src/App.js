@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
 
-
 const Contact = (props) => {
   if (props.filter === '' || props.name.toLowerCase().includes(props.filter.toLowerCase())) {
     return (
       <p>
-        {props.name} {props.number}
+        {props.name} {props.number} <button onClick={props.onClick}>delete</button>
       </p>
     )
   }
@@ -36,10 +35,11 @@ const ContactAddingForm = (props) => {
   )
 }
 
-const Contacts = (props) => {
+const Contacts = ({ filter, onClick, persons }) => {
   return (
-    props.persons.map(person =>
-      <Contact key={person.name} name={person.name} number={person.number} filter={props.filter} />)
+    persons.map(person =>
+      <Contact key={person.name} name={person.name}
+        number={person.number} filter={filter} onClick={() => onClick(person.name, person.id)} />)
   )
 }
 
@@ -49,14 +49,14 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
 
-  useEffect(() => {
+  const getAll = () => {
     personService.getPersons()
       .then(initialPersons => {
         console.log('initialpersons', initialPersons);
         setPersons(initialPersons)
       })
-  }, [])
-
+  }
+  useEffect(getAll, [])
   console.log('render', persons.length, 'persons')
 
   const addName = (event) => {
@@ -77,6 +77,16 @@ const App = () => {
     }
   }
 
+  const deleteName = (personName, personId) => {
+    console.log("delete clicked", personId);
+    if (window.confirm(`Delete ${personName}?`)) {
+      personService.deletePerson(personId).then(status => {
+        console.log("response status: ", status);
+        getAll()
+      })
+    }
+  }
+
   const handleNameChange = (event) => setNewName(event.target.value)
   const handleNumberChange = (event) => setNewNumber(event.target.value)
   const handleFilterChange = (event) => setNewFilter(event.target.value)
@@ -91,7 +101,7 @@ const App = () => {
         number={newNumber} onNumberChange={handleNumberChange} />
 
       <h2>Contacts</h2>
-      <Contacts persons={persons} filter={newFilter} />
+      <Contacts persons={persons} filter={newFilter} onClick={(personName, personId) => deleteName(personName, personId)} />
     </div>
   )
 }
