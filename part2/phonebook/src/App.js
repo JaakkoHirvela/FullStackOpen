@@ -61,14 +61,21 @@ const App = () => {
 
   const addName = (event) => {
     event.preventDefault()
-    if (persons.find(person => person.name === newName) !== undefined) {
-      alert(`${newName} is already added to phonebook`)
+    
+    const newPerson = { name: newName, number: newNumber }
+
+    const foundPerson = persons.find(person => person.name === newName)
+
+    if ( foundPerson !== undefined) {
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)){
+        personService.putPerson(newPerson, foundPerson.id)
+          .then(modifiedPerson => {
+            console.log("response", modifiedPerson);
+            getAll()
+          }
+      )}
     }
-    else if (persons.find(person => person.number === newNumber) !== undefined) {
-      alert(`${newNumber} is already added to phonebook`)
-    }
-    else {
-      const newPerson = { name: newName, number: newNumber }
+    else {      
       personService.addPerson(newPerson)
         .then(newPerson => {
           console.log('add newPerson', newPerson);
