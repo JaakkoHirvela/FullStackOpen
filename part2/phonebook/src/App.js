@@ -43,13 +43,12 @@ const Contacts = ({ filter, onClick, persons }) => {
   )
 }
 
-const Notification = ({ message }) => {
+const Notification = ({ message, isError }) => {
   if (message === null) {
     return null
   }
-
   return (
-    <div className="notification">
+    <div className={isError ? "error" : "notification"} >
       {message}
     </div>
   )
@@ -61,7 +60,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
   const [notificationMessage, setNotificationMessage] = useState(null)
-
+  const [errorMessage, setErrorMessage] = useState(null)
   const getAll = () => {
     personService.getPersons()
       .then(initialPersons => {
@@ -72,10 +71,16 @@ const App = () => {
   useEffect(getAll, [])
   console.log('render', persons.length, 'persons')
 
-  const makeNotification = (message) => {
-    setNotificationMessage(message)
+  const makeNotification = (message, isError) => {
+    if (isError){
+      setErrorMessage(message)
+    }
+    else{
+      setNotificationMessage(message)
+    }
     setTimeout(() => {
       setNotificationMessage(null)
+      setErrorMessage(null)
     }, 5000)
   }
 
@@ -91,10 +96,13 @@ const App = () => {
         personService.putPerson(newPerson, foundPerson.id)
           .then(modifiedPerson => {
             console.log("response", modifiedPerson);
-            makeNotification(`Updated ${modifiedPerson.name}'s number`)
+            makeNotification(`Updated ${modifiedPerson.name}'s number`, false)
             getAll()
           }
           )
+          .catch(error => {
+            makeNotification(`${newPerson.name} was already deleted!`, true)
+          })
       }
     }
     else {
@@ -102,7 +110,7 @@ const App = () => {
         .then(newPerson => {
           console.log('add newPerson', newPerson);
           setPersons(persons.concat(newPerson))
-          makeNotification(`Added ${newPerson.name}`)
+          makeNotification(`Added ${newPerson.name}`, false)
         })
     }
   }
@@ -112,7 +120,7 @@ const App = () => {
     if (window.confirm(`Delete ${personName}?`)) {
       personService.deletePerson(personId).then(status => {
         console.log("response status: ", status);
-        makeNotification(`Deleted ${personName}`)
+        makeNotification(`Deleted ${personName}`, false)
         getAll()
       })
     }
@@ -131,7 +139,8 @@ const App = () => {
       <h2>Add a new contact</h2>
       <ContactAddingForm onSubmit={addName} name={newName} onNameChange={handleNameChange}
         number={newNumber} onNumberChange={handleNumberChange} />
-      <Notification message={notificationMessage} />
+      <Notification message={notificationMessage} isError={false} />
+      <Notification message={errorMessage} isError={true} />
       <h2>Contacts</h2>
       <Contacts persons={persons} filter={newFilter} onClick={(personName, personId) => deleteName(personName, personId)} />
     </div>
