@@ -43,11 +43,24 @@ const Contacts = ({ filter, onClick, persons }) => {
   )
 }
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="notification">
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState(null)
 
   const getAll = () => {
     personService.getPersons()
@@ -59,27 +72,37 @@ const App = () => {
   useEffect(getAll, [])
   console.log('render', persons.length, 'persons')
 
+  const makeNotification = (message) => {
+    setNotificationMessage(message)
+    setTimeout(() => {
+      setNotificationMessage(null)
+    }, 5000)
+  }
+
   const addName = (event) => {
     event.preventDefault()
-    
+
     const newPerson = { name: newName, number: newNumber }
 
     const foundPerson = persons.find(person => person.name === newName)
 
-    if ( foundPerson !== undefined) {
-      if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)){
+    if (foundPerson !== undefined) {
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
         personService.putPerson(newPerson, foundPerson.id)
           .then(modifiedPerson => {
             console.log("response", modifiedPerson);
+            makeNotification(`Updated ${modifiedPerson.name}'s number`)
             getAll()
           }
-      )}
+          )
+      }
     }
-    else {      
+    else {
       personService.addPerson(newPerson)
         .then(newPerson => {
           console.log('add newPerson', newPerson);
           setPersons(persons.concat(newPerson))
+          makeNotification(`Added ${newPerson.name}`)
         })
     }
   }
@@ -89,6 +112,7 @@ const App = () => {
     if (window.confirm(`Delete ${personName}?`)) {
       personService.deletePerson(personId).then(status => {
         console.log("response status: ", status);
+        makeNotification(`Deleted ${personName}`)
         getAll()
       })
     }
@@ -101,12 +125,13 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      
       <FilterForm value={newFilter} onChange={handleFilterChange} />
 
       <h2>Add a new contact</h2>
       <ContactAddingForm onSubmit={addName} name={newName} onNameChange={handleNameChange}
         number={newNumber} onNumberChange={handleNumberChange} />
-
+      <Notification message={notificationMessage} />
       <h2>Contacts</h2>
       <Contacts persons={persons} filter={newFilter} onClick={(personName, personId) => deleteName(personName, personId)} />
     </div>
