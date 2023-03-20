@@ -16,8 +16,8 @@ const WeatherDisplay = ({country, weather}) => {
 const SingleCountryInfo = ({ country }) => {
 
   const [weather, setWeather] = useState(null)
-  const lat = country.latlng[0]
-  const lng = country.latlng[1]
+  const lat = country.capitalInfo.latlng[0]
+  const lng = country.capitalInfo.latlng[1]
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${API_KEY}`
   
   useEffect(() => {
@@ -25,10 +25,10 @@ const SingleCountryInfo = ({ country }) => {
     axios.get(url)
       .then(response => {
         setWeather(response.data)
-        console.log('effect run, weather is now', weather)    
       })
   }, [])
-  
+  console.log('weather is now: ', weather);
+
   if (weather !== null){
     return (
       <div>
@@ -97,13 +97,13 @@ function App() {
   const [allCountries, setAllCountries] = useState(null)
 
   useEffect(() => {
-    console.log('effect run, allCountries is now', allCountries);
     console.log('fetching countries..');
     axios.get("https://restcountries.com/v3.1/all")
       .then(response => {
         setAllCountries(response.data)
       })
   }, [])
+  console.log('effect run, allCountries is now', allCountries);
 
   const handleCountryChange = (event) => setCountryFilter(event.target.value.toLowerCase())
 
